@@ -1,7 +1,7 @@
 {
-  "name": "luna-library-template",
+  "name": "luna-helpers",
   "version": "1.0.0",
-  "description": "A template for LUNA libraries",
+  "description": "Helper functions",
   "main": "build/index.js",
   "files": [
     "build"
