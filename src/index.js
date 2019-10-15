@@ -1,3 +1,7 @@
+import { AllHtmlEntities } from 'html-entities'
+
+const entities = new AllHtmlEntities()
+
 export const parseURLQuery = (str) => {
   if (typeof str !== 'string' || !str.length) {
     return {}
@@ -27,7 +31,6 @@ export const parseURLQuery = (str) => {
 
   return query
 }
-
 export const stringifyURLQuery = (params) => {
   const sortedParams = Object.keys(params)
     .sort()
@@ -41,7 +44,6 @@ export const stringifyURLQuery = (params) => {
 
   return searchParameters.toString()
 }
-
 export const replaceSubstr = (...args) => {
   let [s, p, r] = args || []
 
@@ -56,9 +58,27 @@ export const replaceSubstr = (...args) => {
     0: () => false
   }[args.length]()
 }
+export const unescapeHtmlChars = (v = '') => entities.decode(v)
+export const getNumDescription = (n, textForms) => {
+  const num = Math.abs(n) % 100
+  const num1 = num % 10
+
+  if (num > 10 && num < 20) {
+    return textForms[2]
+  }
+  if (num1 > 1 && num1 < 5) {
+    return textForms[1]
+  }
+  if (num1 === 1) {
+    return textForms[0]
+  }
+  return textForms[2]
+}
 
 export default {
   parseURLQuery,
   stringifyURLQuery,
-  replaceSubstr
+  replaceSubstr,
+  unescapeHtmlChars,
+  getNumDescription
 }
