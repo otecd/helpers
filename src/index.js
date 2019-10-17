@@ -74,7 +74,7 @@ export const getNumDescription = (n, textForms) => {
   }
   return textForms[2]
 }
-export const getAge = birthDate => Math.trunc((new Date() - birthDate) / (1000 * 60 * 60 * 24 * 365.245))
+export const getAge = birthDate => Math.trunc((new Date() - new Date(birthDate)) / (1000 * 60 * 60 * 24 * 365.245))
 
 export default {
   parseURLQuery,
