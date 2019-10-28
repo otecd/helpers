@@ -88,6 +88,7 @@ export const getNumDescription = (n, textForms) => {
   return textForms[2]
 }
 export const getAge = birthDate => Math.trunc((new Date() - new Date(birthDate)) / (1000 * 60 * 60 * 24 * 365.245))
+
 export const getVkToken = async ({ appId, scopeList = [] }) => {
   let result
 
@@ -355,6 +356,128 @@ export const openVkPayWindow = async ({
   return true
 }
 
+export const authorizeUserByVkParams = async (axInstance, reqData = {}) => {
+  let response
+
+  try {
+    response = await axInstance.post('/users/authenticate', reqData)
+  } catch (error) {
+    throw error.response.data
+  }
+
+  return response.data
+}
+export const createUserByVkParams = async (axInstance, userData = {}) => {
+  let response
+
+  try {
+    response = await axInstance.post('/users/register', userData)
+  } catch (error) {
+    throw error
+  }
+
+  return response.data
+}
+export const synchronizeVkData = async (axInstance, userData) => {
+  let response
+
+  try {
+    response = await axInstance.post('/users/synchronize-vk-data', { data: userData })
+  } catch (error) {
+    throw error
+  }
+
+  return response.data
+}
+export const updateUser = async (axInstance, { newData }) => {
+  let response
+
+  try {
+    response = await axInstance.put('/users', newData)
+  } catch (error) {
+    throw error
+  }
+
+  return response.data
+}
+export const deleteUser = async (axInstance) => {
+  let response
+
+  try {
+    response = await axInstance.delete('/users')
+  } catch (error) {
+    throw error
+  }
+
+  return response.data
+}
+export const setAnswerToOffer = async (axInstance, { offer, answer }) => {
+  let offerAnswerResponse
+
+  try {
+    offerAnswerResponse = await axInstance.post(`/offers/${offer}/answer`, { answer })
+  } catch (error) {
+    throw error
+  }
+
+  return offerAnswerResponse.data
+}
+export const checkExistingOrder = async (axInstance) => {
+  let recentOrderResponse
+
+  try {
+    recentOrderResponse = await axInstance.get('/orders/recent')
+  } catch (error) {
+    throw error
+  }
+
+  return recentOrderResponse.data
+}
+export const createOrder = async (axInstance, orderData = {}) => {
+  let newOrderResponse
+
+  try {
+    newOrderResponse = await axInstance.post('/orders', orderData)
+  } catch (error) {
+    throw error
+  }
+
+  return newOrderResponse.data
+}
+export const continueOrder = async (axInstance, { orderId }) => {
+  let orderResponse
+
+  try {
+    orderResponse = await axInstance.post('/orders', { orderId })
+  } catch (error) {
+    throw error
+  }
+
+  return orderResponse.data
+}
+export const updateOrderStatus = async (axInstance, { orderId, status }) => {
+  let orderResponse
+
+  try {
+    orderResponse = await axInstance.put(`/orders/${orderId}`, { status })
+  } catch (error) {
+    throw error
+  }
+
+  return orderResponse.data
+}
+export const sendComplaint = async (axInstance, reqData = {}) => {
+  let response
+
+  try {
+    response = await axInstance.post('/complaints', reqData)
+  } catch (error) {
+    throw error
+  }
+
+  return response.data
+}
+
 export default {
   parseURLQuery,
   stringifyURLQuery,
@@ -372,5 +495,16 @@ export default {
   getInitialVkUserData,
   repostToVkWall,
   askForVkNotificationsSending,
-  openVkPayWindow
+  openVkPayWindow,
+  authorizeUserByVkParams,
+  createUserByVkParams,
+  synchronizeVkData,
+  updateUser,
+  deleteUser,
+  setAnswerToOffer,
+  checkExistingOrder,
+  createOrder,
+  continueOrder,
+  updateOrderStatus,
+  sendComplaint
 }
