@@ -1,4 +1,6 @@
+import vkConnect from '@vkontakte/vk-connect'
 import { AllHtmlEntities } from 'html-entities'
+import RichError from 'luna-rich-error'
 
 const entities = new AllHtmlEntities()
 
@@ -59,6 +61,17 @@ export const replaceSubstr = (...args) => {
   }[args.length]()
 }
 export const unescapeHtmlChars = (v = '') => entities.decode(v)
+export const unescapeHtmlCharsFromVkGeoData = d => ({
+  ...d,
+  title: d.title ? unescapeHtmlChars(d.title) : d.title
+})
+export const unescapeHtmlCharsFromVkUserData = d => ({
+  ...d,
+  first_name: d.first_name ? unescapeHtmlChars(d.first_name) : d.first_name,
+  last_name: d.last_name ? unescapeHtmlChars(d.last_name) : d.last_name,
+  city: typeof d.city === 'object' ? unescapeHtmlCharsFromVkGeoData(d.city) : d.city,
+  country: typeof d.country === 'object' ? unescapeHtmlCharsFromVkGeoData(d.country) : d.country
+})
 export const getNumDescription = (n, textForms) => {
   const num = Math.abs(n) % 100
   const num1 = num % 10
@@ -75,12 +88,239 @@ export const getNumDescription = (n, textForms) => {
   return textForms[2]
 }
 export const getAge = birthDate => Math.trunc((new Date() - new Date(birthDate)) / (1000 * 60 * 60 * 24 * 365.245))
+export const getVkToken = async ({ appId, scopeList = [] }) => {
+  let result
+
+  try {
+    result = await vkConnect.sendPromise('VKWebAppGetAuthToken', { app_id: appId, scope: scopeList.join() })
+  } catch (error) {
+    if (typeof error === 'object') {
+      if (error.error_data && error.error_data.error_code && error.error_data.error_code === 4) {
+        throw new RichError('Запрос на предоставление доступов был отклонен.', 423, RichError.codes.REJECTED_SCOPES_REQUEST)
+      }
+    }
+    throw new RichError('Произошла ошибка во время получения токена VK.')
+  }
+
+  if (scopeList.length && (!result.scope || result.scope.split(',').length < scopeList.length)) {
+    throw new RichError('Количество отмеченных доступов меньше ожидаемого.', 416, RichError.codes.INSUFFICIENT_SCOPES_RANGE)
+  }
+
+  return result.access_token
+}
+export const searchVkCountries = async ({ vkToken, value }) => {
+  let response
+
+  try {
+    ({ response } = await vkConnect.sendPromise('VKWebAppCallAPIMethod', {
+      method: 'database.getCountries',
+      params: {
+        need_all: 1,
+        count: 1000,
+        v: '5.102',
+        lang: 'ru',
+        access_token: vkToken
+      }
+    }))
+  } catch (error) {
+    throw error
+  }
+
+  return response.items
+    .filter(c => c.title.toLowerCase()
+      .startsWith(value))
+    .map(({ id, title }) => ({ value: unescapeHtmlChars(title), vkFieldId: id }))
+}
+export const searchVkCities = async ({
+  vkToken,
+  value,
+  vkCountryId
+}) => {
+  let response
+
+  try {
+    ({ response } = await vkConnect.sendPromise('VKWebAppCallAPIMethod', {
+      method: 'database.getCities',
+      params: {
+        country_id: vkCountryId,
+        q: value,
+        need_all: 1,
+        count: 1000,
+        v: '5.102',
+        lang: 'ru',
+        access_token: vkToken
+      }
+    }))
+  } catch (error) {
+    throw error
+  }
+
+  return response.items.map(({
+    id,
+    title,
+    region
+  }) => ({
+    value: unescapeHtmlChars(title),
+    vkFieldId: id,
+    region: unescapeHtmlChars(region)
+  }))
+}
+export const executeVkApiMethods = async ({
+  vkToken,
+  vkCountryIds,
+  vkCityIds,
+  vkUserIds,
+  vkGroupsOfUserId
+}) => {
+  const entityReducer = [(r, c) => ({ ...r, [c.id]: unescapeHtmlChars(c.title) }), {}]
+  let response
+
+  try {
+    ({ response } = await vkConnect.sendPromise('VKWebAppCallAPIMethod', {
+      method: 'execute',
+      params: {
+        code: `
+          return {
+            ${vkCountryIds ? `
+              countries: API.database.getCountriesById({
+                country_ids: '${vkCountryIds.join(',')}',
+                v: '5.102'
+              }),
+            ` : ''}
+            ${vkCityIds ? `
+              cities: API.database.getCitiesById({
+                city_ids: '${vkCityIds.join(',')}',
+                v: '5.102'
+              }),
+            ` : ''}
+            ${vkUserIds ? `
+              users: API.users.get({
+                user_ids: '${vkUserIds.join(',')}',
+                fields: 'timezone,about,sex,city,country,bdate,photo_200,photo_max_orig',
+                v: '5.102'
+              }),
+            ` : ''}
+            ${vkGroupsOfUserId ? `
+              groups: API.groups.get({
+                user_id: ${vkGroupsOfUserId},
+                v: '5.102'
+              }),
+            ` : ''}
+          };
+        `,
+        access_token: vkToken,
+        lang: 'ru',
+        v: '5.102'
+      }
+    }))
+  } catch (error) {
+    throw error
+  }
+
+  return {
+    vkCountriesById: vkCountryIds && response.countries.reduce(...entityReducer),
+    vkCitiesById: vkCityIds && response.cities.reduce(...entityReducer),
+    vkUsers: vkUserIds && response.users.map(unescapeHtmlCharsFromVkUserData),
+    vkGroups: vkGroupsOfUserId && response.groups.items
+  }
+}
+export const getVkImagesNativeViewer = ({ images, startIndex }) => {
+  return vkConnect.sendPromise('VKWebAppShowImages', { images, start_index: startIndex })
+}
+export const getInitialVkUserData = async () => {
+  let result
+
+  try {
+    result = await vkConnect.sendPromise('VKWebAppGetUserInfo', {
+      params: { lang: 'ru' }
+    })
+  } catch (error) {
+    throw error
+  }
+
+  return unescapeHtmlCharsFromVkUserData(result)
+}
+export const repostToVkWall = ({ message, attachments }) => {
+  return vkConnect.sendPromise('VKWebAppShowWallPostBox', {
+    message,
+    attachments,
+    v: '5.102',
+    close_comments: 1
+  })
+}
+export const askForVkNotificationsSending = async () => {
+  let result
+
+  try {
+    result = await vkConnect.sendPromise('VKWebAppAllowNotifications', {})
+  } catch (error) {
+    result = { result: false }
+  }
+
+  return result
+}
+export const openVkPayWindow = async ({
+  amount,
+  description,
+  appId,
+  sign,
+  merchantId,
+  merchantData,
+  merchantSign,
+  orderId,
+  ts
+}) => {
+  const action = 'pay-to-service'
+  const generalErrorMessage = 'Во время оплаты произошла ошибка. Попробуйте еще раз, пожалуйста.'
+  let result
+
+  try {
+    ({ result } = await vkConnect.sendPromise('VKWebAppOpenPayForm', {
+      app_id: appId,
+      action,
+      params: {
+        amount,
+        description,
+        action,
+        merchant_id: merchantId,
+        version: 2,
+        sign,
+        data: {
+          currency: 'RUB',
+          merchant_data: merchantData,
+          merchant_sign: merchantSign,
+          order_id: orderId,
+          ts
+        }
+      }
+    }))
+  } catch (error) {
+    throw new RichError(generalErrorMessage)
+  }
+
+  if (!result.status) {
+    throw new RichError(generalErrorMessage)
+  }
+
+  return true
+}
 
 export default {
   parseURLQuery,
   stringifyURLQuery,
   replaceSubstr,
   unescapeHtmlChars,
+  unescapeHtmlCharsFromVkGeoData,
+  unescapeHtmlCharsFromVkUserData,
   getNumDescription,
-  getAge
+  getAge,
+  getVkToken,
+  searchVkCountries,
+  searchVkCities,
+  executeVkApiMethods,
+  getVkImagesNativeViewer,
+  getInitialVkUserData,
+  repostToVkWall,
+  askForVkNotificationsSending,
+  openVkPayWindow
 }
