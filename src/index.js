@@ -170,9 +170,21 @@ export const executeVkApiMethods = async ({
   vkCountryIds,
   vkCityIds,
   vkUserIds,
-  vkGroupsOfUserId
+  vkGroupsOfUserId,
+  vkPhotosOfUserId
 }) => {
   const entityReducer = [(r, c) => ({ ...r, [c.id]: unescapeHtmlChars(c.title) }), {}]
+  const photosMapper = ({ sizes }) => {
+    let currentSize = { height: 0 }
+
+    sizes.forEach((s) => {
+      if (s.height >= currentSize.height && s.height <= 1000) {
+        currentSize = s
+      }
+    })
+
+    return currentSize.url
+  }
   let response
 
   try {
@@ -213,6 +225,43 @@ export const executeVkApiMethods = async ({
         v: '5.102'
       }
     }))
+    if (vkPhotosOfUserId) {
+      response.photos = await new Promise((resolve, reject) => {
+        setTimeout(async () => {
+          let vkApiPhotosData
+
+          try {
+            vkApiPhotosData = await vkConnect.sendPromise('VKWebAppCallAPIMethod', {
+              method: 'photos.get',
+              params: {
+                owner_id: vkPhotosOfUserId,
+                album_id: 'profile',
+                rev: 1,
+                count: 10,
+                v: '5.102',
+                lang: 'ru',
+                access_token: vkToken
+              }
+            })
+          } catch (error) {
+            if (error.error_data && !error.error_data.error_reason) {
+              if (error.error_data.error_code === 30) {
+                return resolve({ items: [] })
+              }
+              return reject(new RichError(error.error_data.error_msg))
+            }
+            if (error.error_data && error.error_data.error_reason) {
+              if (error.error_data.error_reason.error_code === 30) {
+                return resolve({ items: [] })
+              }
+              return reject(new RichError(error.error_data.error_reason.error_msg))
+            }
+            return reject(new RichError('Ошибка при получении фотографий из VK'))
+          }
+          return resolve(vkApiPhotosData.response)
+        }, 1000)
+      })
+    }
   } catch (error) {
     throw error
   }
@@ -221,7 +270,8 @@ export const executeVkApiMethods = async ({
     vkCountriesById: vkCountryIds && response.countries.reduce(...entityReducer),
     vkCitiesById: vkCityIds && response.cities.reduce(...entityReducer),
     vkUsers: vkUserIds && response.users.map(unescapeHtmlCharsFromVkUserData),
-    vkGroups: vkGroupsOfUserId && response.groups.items
+    vkGroups: vkGroupsOfUserId && response.groups.items,
+    vkPhotos: vkPhotosOfUserId && response.photos.items.map(photosMapper)
   }
 }
 export const getVkImagesNativeViewer = ({ images, startIndex }) => {
