@@ -1,6 +1,6 @@
 {
   "name": "luna-helpers",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "Helper functions",
   "main": "build/index.js",
   "files": [

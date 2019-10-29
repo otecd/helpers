@@ -89,6 +89,26 @@ export const getNumDescription = (n, textForms) => {
 }
 export const getAgeDescription = n => getNumDescription(n, ['год', 'года', 'лет'])
 export const getAge = birthDate => Math.trunc((new Date() - new Date(birthDate)) / (1000 * 60 * 60 * 24 * 365.245))
+export const formatVkBirthDate = (vkBDate) => {
+  if (!vkBDate) {
+    return new Date(2001, 0)
+  }
+
+  const parts = vkBDate.split('.')
+    .map(v => +v)
+
+  parts[1] -= 1
+
+  let birthDate = new Date(parts[2] || 2001, parts[1], parts[0])
+  const minBirthDate = new Date(Date.now() - 1000 * 60 * 60 * 24 * 365.245 * 120)
+
+  if (birthDate < minBirthDate) {
+    birthDate = new Date(minBirthDate.getFullYear(), parts[1], parts[0])
+  }
+
+  return birthDate
+}
+export const addRequestPagination = ({ limit = 20, offset = 0 } = {}) => `limit=${limit}&offset=${offset}`
 
 export const getVkToken = async ({ appId, scopeList = [] }) => {
   let result
@@ -429,6 +449,8 @@ export default {
   getNumDescription,
   getAgeDescription,
   getAge,
+  formatVkBirthDate,
+  addRequestPagination,
   getVkToken,
   searchVkCountries,
   searchVkCities,
