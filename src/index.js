@@ -1,5 +1,6 @@
 import vkConnect from '@vkontakte/vk-connect'
 import { AllHtmlEntities } from 'html-entities'
+import { hashHmacWithBase64 } from 'luna-crypto-lib'
 import RichError from 'luna-rich-error'
 
 const entities = new AllHtmlEntities()
@@ -110,6 +111,21 @@ export const formatVkBirthDate = (vkBDate) => {
   return birthDate
 }
 export const addRequestPagination = ({ limit = 20, offset = 0 } = {}) => `limit=${limit}&offset=${offset}`
+export const validateVkSign = (data, secret) => {
+  const { sign } = data
+
+  delete data.sign
+
+  const searchString = stringifyURLQuery(data)
+  let signGenerated = replaceSubstr(hashHmacWithBase64('sha256', searchString, secret), { '+': '-', '/': '_' })
+    .trimEnd()
+
+  if (signGenerated.endsWith('=')) {
+    signGenerated = signGenerated.slice(0, -1)
+  }
+
+  return signGenerated === sign
+}
 
 export const getVkToken = async ({ appId, scopeList = [] }) => {
   let result
@@ -453,6 +469,7 @@ export default {
   getAge,
   formatVkBirthDate,
   addRequestPagination,
+  validateVkSign,
   getVkToken,
   searchVkCountries,
   searchVkCities,

@@ -1,6 +1,6 @@
 {
   "name": "luna-helpers",
-  "version": "1.5.2",
+  "version": "1.6.0",
   "description": "Helper functions",
   "main": "build/index.js",
   "files": [
@@ -28,6 +28,7 @@
   "dependencies": {
     "@vkontakte/vk-connect": "^1.6.8",
     "html-entities": "^1.2.1",
+    "luna-crypto-lib": "^1.0.2",
     "luna-rich-error": "^1.2.0"
   }
 }
