@@ -405,54 +405,37 @@ export const authorizeUserByVkParams = async (axInstance, reqData = {}) => {
   return response.data
 }
 export const createUserByVkParams = async (axInstance, userData = {}) => {
-  const response = await axInstance.post('/users/register', userData)
-
-  return response.data
+  return (await axInstance.post('/users/register', userData)).data
 }
 export const synchronizeVkData = async (axInstance, userData) => {
-  const response = await axInstance.post('/users/synchronize-vk-data', { data: userData })
-
-  return response.data
+  return (await axInstance.post('/users/synchronize-vk-data', { data: userData })).data
 }
 export const updateUser = async (axInstance, { newData }) => {
-  const response = await axInstance.put('/users', newData)
-
-  return response.data
+  return (await axInstance.put('/users', newData)).data
 }
 export const deleteUser = async (axInstance) => {
-  const response = await axInstance.delete('/users')
-
-  return response.data
+  return (await axInstance.delete('/users')).data
 }
 export const setAnswerToOffer = async (axInstance, { offer, answer }) => {
-  const offerAnswerResponse = await axInstance.post(`/offers/${offer}/answer`, { answer })
-
-  return offerAnswerResponse.data
+  return (await axInstance.post(`/offers/${offer}/answer`, { answer })).data
 }
 export const checkExistingOrder = async (axInstance) => {
-  const recentOrderResponse = await axInstance.get('/orders/recent')
-
-  return recentOrderResponse.data
+  return (await axInstance.get('/orders/recent')).data
 }
 export const createOrder = async (axInstance, orderData = {}) => {
-  const newOrderResponse = await axInstance.post('/orders', orderData)
-
-  return newOrderResponse.data
+  return (await axInstance.post('/orders', orderData)).data
 }
 export const continueOrder = async (axInstance, { orderId }) => {
-  const orderResponse = await axInstance.post('/orders', { orderId })
-
-  return orderResponse.data
+  return (await axInstance.post('/orders', { orderId })).data
 }
 export const updateOrderStatus = async (axInstance, { orderId, status }) => {
-  const orderResponse = await axInstance.put(`/orders/${orderId}`, { status })
-
-  return orderResponse.data
+  return (await axInstance.put(`/orders/${orderId}`, { status })).data
+}
+export const fetchProducts = async (axInstance) => {
+  return (await axInstance.get('/orders/products')).data
 }
 export const sendComplaint = async (axInstance, reqData = {}) => {
-  const response = await axInstance.post('/complaints', reqData)
-
-  return response.data
+  return (await axInstance.post('/complaints', reqData)).data
 }
 
 export default {
