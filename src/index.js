@@ -470,5 +470,6 @@ export default {
   createOrder,
   continueOrder,
   updateOrderStatus,
+  fetchProducts,
   sendComplaint
 }
