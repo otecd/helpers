@@ -73,7 +73,6 @@ export const unescapeHtmlCharsFromVkUserData = d => ({
   city: typeof d.city === 'object' ? unescapeHtmlCharsFromVkGeoData(d.city) : d.city,
   country: typeof d.country === 'object' ? unescapeHtmlCharsFromVkGeoData(d.country) : d.country
 })
-export const getRandomInt = (max = 100) => Math.floor(Math.random() * Math.floor(max + 1))
 export const getNumDescription = (n, textForms) => {
   const num = Math.abs(n) % 100
   const num1 = num % 10
@@ -463,7 +462,6 @@ export default {
   unescapeHtmlChars,
   unescapeHtmlCharsFromVkGeoData,
   unescapeHtmlCharsFromVkUserData,
-  getRandomInt,
   getNumDescription,
   getAgeDescription,
   getAge,
