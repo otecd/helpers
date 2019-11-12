@@ -370,7 +370,8 @@ export const repostToVkStories = async ({ vkToken, file }) => {
   const body = new FormData()
 
   body.append('file', file, 'story.jpg')
-  await axios.post(response.upload_url, body, { headers: { 'Content-Type': 'multipart/form-data' } })
+
+  return axios.post(response.upload_url, body, { headers: { 'Content-Type': 'multipart/form-data' } })
 }
 export const repostToVkWall = ({ message, attachments }) => {
   return vkConnect.sendPromise('VKWebAppShowWallPostBox', {
@@ -501,6 +502,7 @@ export default {
   executeVkApiMethods,
   getVkImagesNativeViewer,
   getInitialVkUserData,
+  repostToVkStories,
   repostToVkWall,
   askForVkNotificationsSending,
   openVkPayWindow,
