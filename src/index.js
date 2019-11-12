@@ -1,3 +1,4 @@
+import axios from 'axios'
 import vkConnect from '@vkontakte/vk-connect'
 import { AllHtmlEntities } from 'html-entities'
 import { hashHmacWithBase64 } from 'luna-crypto-lib'
@@ -327,6 +328,49 @@ export const getInitialVkUserData = async () => {
   }
 
   return unescapeHtmlCharsFromVkUserData(result)
+}
+export const repostToVkStories = async ({ vkToken, file }) => {
+  const base64toBlob = (b64Data, contentType = '', sliceSize = 512) => {
+    const byteCharacters = atob(b64Data)
+    const byteArrays = []
+
+    for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+      const slice = byteCharacters.slice(offset, offset + sliceSize)
+      const byteNumbers = new Array(slice.length)
+
+      for (let i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i)
+      }
+      byteArrays.push(new Uint8Array(byteNumbers))
+    }
+
+    return new Blob(byteArrays, { type: contentType })
+  }
+  const generalErrorMessage = 'Во время репоста произошла ошибка. Попробуйте еще раз, пожалуйста.'
+
+  if (!file) {
+    throw new RichError(generalErrorMessage)
+  }
+
+  if (typeof (file) === 'string' && (file.includes('http'))) {
+    const response = await axios.get(file, { responseType: 'arraybuffer' })
+    const image = btoa((new Uint8Array(response.data)).reduce((data, byte) => data + String.fromCharCode(byte), ''))
+
+    return repostToVkStories({ vkToken, file: base64toBlob(image, response.headers['content-type']) })
+  }
+
+  const { response } = await vkConnect.sendPromise('VKWebAppCallAPIMethod', {
+    method: 'stories.getPhotoUploadServer',
+    params: {
+      v: '5.102',
+      access_token: vkToken,
+      add_to_news: 1
+    }
+  })
+  const body = new FormData()
+
+  body.append('file', file, 'story.jpg')
+  await axios.post(response.upload_url, body, { headers: { 'Content-Type': 'multipart/form-data' } })
 }
 export const repostToVkWall = ({ message, attachments }) => {
   return vkConnect.sendPromise('VKWebAppShowWallPostBox', {

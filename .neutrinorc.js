@@ -1,6 +1,15 @@
 module.exports = {
   use: [
-    '@neutrinojs/standardjs',
+    ['@neutrinojs/standardjs', {
+      eslint: {
+        globals: [
+          'atob',
+          'Blob',
+          'FormData',
+          'btoa'
+        ]
+      }
+    }],
     [
       '@neutrinojs/library',
       {
