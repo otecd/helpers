@@ -477,7 +477,7 @@ export const updateOrderStatus = async (axInstance, { orderId, status }) => {
   return (await axInstance.put(`/orders/${orderId}`, { status })).data
 }
 export const fetchProducts = async (axInstance) => {
-  return (await axInstance.get('/orders/products')).data
+  return (await axInstance.get('/products')).data
 }
 export const sendComplaint = async (axInstance, reqData = {}) => {
   return (await axInstance.post('/complaints', reqData)).data
