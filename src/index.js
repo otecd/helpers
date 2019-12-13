@@ -1,8 +1,8 @@
 import axios from 'axios'
 import vkConnect from '@vkontakte/vk-connect'
 import { AllHtmlEntities } from 'html-entities'
-import { hashHmacWithBase64 } from 'luna-crypto-lib'
-import RichError from 'luna-rich-error'
+import { hashHmacWithBase64 } from '@noname.team/crypto'
+import RichError from '@noname.team/rich-error'
 
 const entities = new AllHtmlEntities()
 
