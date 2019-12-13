@@ -20,7 +20,7 @@ module.exports = {
           presets: [
             ['babel-preset-env', {
               targets: {
-                node: '10.0'
+                node: '10'
               }
             }]
           ],
@@ -28,6 +28,15 @@ module.exports = {
         }
       }
     ],
-    '@neutrinojs/mocha'
+    '@neutrinojs/mocha',
+    (neutrino) => {
+      neutrino.config.when(process.env.NODE_ENV === 'production', (config) => {
+        config.plugin('babel-minify')
+          .tap(() => ([
+            { removeConsole: true, removeDebugger: true },
+            { sourceMap: '' }
+          ]));
+      });
+    }
   ]
 };
