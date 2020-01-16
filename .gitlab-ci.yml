@@ -1,0 +1,22 @@
+image: node
+
+before_script:
+  - echo $PATH
+  - hostname
+  - pwd
+  - npm -v
+  - node -v
+
+stages:
+  - test
+
+before_script:
+  - npm i -s
+
+lint:
+  stage: test
+  script:
+    - npm run lint
+
+after_script:
+  - rm -rf node_modules package-lock.json
