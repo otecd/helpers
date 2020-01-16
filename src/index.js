@@ -329,7 +329,7 @@ export const getInitialVkUserData = async () => {
 
   return unescapeHtmlCharsFromVkUserData(result)
 }
-export const repostToVkStories = async ({ vkToken, file, link = { type: '', url: ''} }) => {
+export const repostToVkStories = async ({ vkToken, file, link = { type: '', url: '' } }) => {
   const base64toBlob = (b64Data, contentType = '', sliceSize = 512) => {
     const byteCharacters = atob(b64Data)
     const byteArrays = []
