@@ -1,5 +1,4 @@
 import axios from 'axios'
-import vkConnect from '@vkontakte/vk-connect'
 import { AllHtmlEntities } from 'html-entities'
 import { hashHmacWithBase64 } from '@noname.team/crypto'
 import RichError from '@noname.team/rich-error'
@@ -128,6 +127,7 @@ export const validateVkSign = (data, secret) => {
 }
 
 export const getVkToken = async ({ appId, scopeList = [] }) => {
+  const vkConnect = require('@vkontakte/vk-connect').default
   let result
 
   try {
@@ -148,6 +148,7 @@ export const getVkToken = async ({ appId, scopeList = [] }) => {
   return result.access_token
 }
 export const searchVkCountries = async ({ vkToken, value }) => {
+  const vkConnect = require('@vkontakte/vk-connect').default
   let response
 
   try {
@@ -175,6 +176,7 @@ export const searchVkCities = async ({
   value,
   vkCountryId
 }) => {
+  const vkConnect = require('@vkontakte/vk-connect').default
   let response
 
   try {
@@ -224,6 +226,7 @@ export const executeVkApiMethods = async ({
 
     return currentSize.url
   }
+  const vkConnect = require('@vkontakte/vk-connect').default
   let response
 
   try {
@@ -314,9 +317,12 @@ export const executeVkApiMethods = async ({
   }
 }
 export const getVkImagesNativeViewer = ({ images, startIndex }) => {
+  const vkConnect = require('@vkontakte/vk-connect').default
+
   return vkConnect.sendPromise('VKWebAppShowImages', { images, start_index: startIndex })
 }
 export const getInitialVkUserData = async () => {
+  const vkConnect = require('@vkontakte/vk-connect').default
   let result
 
   try {
@@ -348,6 +354,7 @@ export const base64toBlob = (b64Data, contentType = '', sliceSize = 512) => {
 export const repostToVkStories = async ({ vkToken, file, type, link = { type: '', url: '' } }) => {
   const generalErrorMessage = 'Во время репоста произошла ошибка. Попробуйте еще раз, пожалуйста.'
   const method = { photo: 'stories.getPhotoUploadServer', video: 'stories.getVideoUploadServer' }
+  const vkConnect = require('@vkontakte/vk-connect').default
 
   if (!file || !type) {
     throw new RichError(generalErrorMessage)
@@ -357,7 +364,7 @@ export const repostToVkStories = async ({ vkToken, file, type, link = { type: ''
     const response = await axios.get(file, { responseType: 'arraybuffer' })
     const image = btoa((new Uint8Array(response.data)).reduce((data, byte) => data + String.fromCharCode(byte), ''))
 
-    return repostToVkStories({ vkToken, file: base64toBlob(image, response.headers['content-type']) })
+    return repostToVkStories({ vkToken, file: base64toBlob(image, response.headers['content-type']), type, link })
   }
 
   const { response } = await vkConnect.sendPromise('VKWebAppCallAPIMethod', {
@@ -378,6 +385,8 @@ export const repostToVkStories = async ({ vkToken, file, type, link = { type: ''
   return axios.post(response.upload_url, body, { headers: { 'Content-Type': 'multipart/form-data' } })
 }
 export const repostToVkWall = ({ message, attachments }) => {
+  const vkConnect = require('@vkontakte/vk-connect').default
+
   return vkConnect.sendPromise('VKWebAppShowWallPostBox', {
     message,
     attachments,
@@ -386,6 +395,7 @@ export const repostToVkWall = ({ message, attachments }) => {
   })
 }
 export const askForVkNotificationsSending = async () => {
+  const vkConnect = require('@vkontakte/vk-connect').default
   let result
 
   try {
@@ -409,6 +419,7 @@ export const openVkPayWindow = async ({
 }) => {
   const action = 'pay-to-service'
   const generalErrorMessage = 'Во время оплаты произошла ошибка. Попробуйте еще раз, пожалуйста.'
+  const vkConnect = require('@vkontakte/vk-connect').default
   let result
 
   try {
