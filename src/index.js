@@ -329,26 +329,27 @@ export const getInitialVkUserData = async () => {
 
   return unescapeHtmlCharsFromVkUserData(result)
 }
-export const repostToVkStories = async ({ vkToken, file, link = { type: '', url: '' } }) => {
-  const base64toBlob = (b64Data, contentType = '', sliceSize = 512) => {
-    const byteCharacters = atob(b64Data)
-    const byteArrays = []
+export const base64toBlob = (b64Data, contentType = '', sliceSize = 512) => {
+  const byteCharacters = atob(b64Data)
+  const byteArrays = []
 
-    for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-      const slice = byteCharacters.slice(offset, offset + sliceSize)
-      const byteNumbers = new Array(slice.length)
+  for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+    const slice = byteCharacters.slice(offset, offset + sliceSize)
+    const byteNumbers = new Array(slice.length)
 
-      for (let i = 0; i < slice.length; i++) {
-        byteNumbers[i] = slice.charCodeAt(i)
-      }
-      byteArrays.push(new Uint8Array(byteNumbers))
+    for (let i = 0; i < slice.length; i++) {
+      byteNumbers[i] = slice.charCodeAt(i)
     }
-
-    return new Blob(byteArrays, { type: contentType })
+    byteArrays.push(new Uint8Array(byteNumbers))
   }
-  const generalErrorMessage = 'Во время репоста произошла ошибка. Попробуйте еще раз, пожалуйста.'
 
-  if (!file) {
+  return new Blob(byteArrays, { type: contentType })
+}
+export const repostToVkStories = async ({ vkToken, file, type, link = { type: '', url: '' } }) => {
+  const generalErrorMessage = 'Во время репоста произошла ошибка. Попробуйте еще раз, пожалуйста.'
+  const method = { photo: 'stories.getPhotoUploadServer', video: 'stories.getVideoUploadServer' }
+
+  if (!file || type) {
     throw new RichError(generalErrorMessage)
   }
 
@@ -360,7 +361,7 @@ export const repostToVkStories = async ({ vkToken, file, link = { type: '', url:
   }
 
   const { response } = await vkConnect.sendPromise('VKWebAppCallAPIMethod', {
-    method: 'stories.getPhotoUploadServer',
+    method: method[type],
     params: {
       v: '5.102',
       access_token: vkToken,
@@ -370,8 +371,9 @@ export const repostToVkStories = async ({ vkToken, file, link = { type: '', url:
     }
   })
   const body = new FormData()
+  const fileName = { photo: 'story.jpg', video: 'story.mp4' }
 
-  body.append('file', file, 'story.jpg')
+  body.append('file', file, fileName[type])
 
   return axios.post(response.upload_url, body, { headers: { 'Content-Type': 'multipart/form-data' } })
 }
@@ -379,7 +381,7 @@ export const repostToVkWall = ({ message, attachments }) => {
   return vkConnect.sendPromise('VKWebAppShowWallPostBox', {
     message,
     attachments,
-    v: '5.102',
+    v: '5.103',
     close_comments: 1
   })
 }
