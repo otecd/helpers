@@ -349,7 +349,7 @@ export const repostToVkStories = async ({ vkToken, file, type, link = { type: ''
   const generalErrorMessage = 'Во время репоста произошла ошибка. Попробуйте еще раз, пожалуйста.'
   const method = { photo: 'stories.getPhotoUploadServer', video: 'stories.getVideoUploadServer' }
 
-  if (!file || type) {
+  if (!file || !type) {
     throw new RichError(generalErrorMessage)
   }
 
