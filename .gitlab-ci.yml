@@ -6,17 +6,28 @@ before_script:
   - pwd
   - npm -v
   - node -v
+  - npm i -s
 
 stages:
   - test
-
-before_script:
-  - npm i -s
+  - publish
 
 lint:
   stage: test
   script:
     - npm run lint
 
+production:
+  stage: publish
+  when: manual
+  script:
+    - npm run build
+    - export NPM_TOKEN="9f2403c7-6ed2-4af1-a276-05abfbeb8963"
+    - touch ".npmrc"
+    - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> "/builds/noname.team/libraries/helpers/.npmrc"
+    - npm publish --access public
+  only:
+    - master
+
 after_script:
-  - rm -rf node_modules package-lock.json
+  - rm -rf node_modules package-lock.json .npmrc build
