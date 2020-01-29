@@ -126,8 +126,11 @@ export const validateVkSign = (data, secret) => {
   return signGenerated === sign
 }
 
-export const getVkToken = async ({ appId, scopeList = [] }) => {
-  const vkConnect = require('@vkontakte/vk-connect').default
+export const getVkToken = async ({
+  appId,
+  scopeList = [],
+  vkConnect = require('@vkontakte/vk-connect').default
+}) => {
   let result
 
   try {
@@ -147,8 +150,11 @@ export const getVkToken = async ({ appId, scopeList = [] }) => {
 
   return result.access_token
 }
-export const searchVkCountries = async ({ vkToken, value }) => {
-  const vkConnect = require('@vkontakte/vk-connect').default
+export const searchVkCountries = async ({
+  vkToken,
+  value,
+  vkConnect = require('@vkontakte/vk-connect').default
+}) => {
   let response
 
   try {
@@ -174,9 +180,9 @@ export const searchVkCountries = async ({ vkToken, value }) => {
 export const searchVkCities = async ({
   vkToken,
   value,
-  vkCountryId
+  vkCountryId,
+  vkConnect = require('@vkontakte/vk-connect').default
 }) => {
-  const vkConnect = require('@vkontakte/vk-connect').default
   let response
 
   try {
@@ -212,7 +218,8 @@ export const executeVkApiMethods = async ({
   vkCityIds,
   vkUserIds,
   vkGroupsOfUserId,
-  vkPhotosOfUserId
+  vkPhotosOfUserId,
+  vkConnect = require('@vkontakte/vk-connect').default
 }) => {
   const entityReducer = [(r, c) => ({ ...r, [c.id]: unescapeHtmlChars(c.title) }), {}]
   const photosMapper = ({ sizes }) => {
@@ -226,7 +233,6 @@ export const executeVkApiMethods = async ({
 
     return currentSize.url
   }
-  const vkConnect = require('@vkontakte/vk-connect').default
   let response
 
   try {
@@ -316,13 +322,14 @@ export const executeVkApiMethods = async ({
     vkPhotos: vkPhotosOfUserId && response.photos.items.map(photosMapper)
   }
 }
-export const getVkImagesNativeViewer = ({ images, startIndex }) => {
-  const vkConnect = require('@vkontakte/vk-connect').default
-
+export const getVkImagesNativeViewer = ({
+  images,
+  startIndex,
+  vkConnect = require('@vkontakte/vk-connect').default
+}) => {
   return vkConnect.sendPromise('VKWebAppShowImages', { images, start_index: startIndex })
 }
-export const getInitialVkUserData = async () => {
-  const vkConnect = require('@vkontakte/vk-connect').default
+export const getInitialVkUserData = async (vkConnect = require('@vkontakte/vk-connect').default) => {
   let result
 
   try {
@@ -351,10 +358,15 @@ export const base64toBlob = (b64Data, contentType = '', sliceSize = 512) => {
 
   return new Blob(byteArrays, { type: contentType })
 }
-export const repostToVkStories = async ({ vkToken, file, type, link = { type: '', url: '' } }) => {
+export const repostToVkStories = async ({
+  vkToken,
+  file,
+  type,
+  link = { type: '', url: '' },
+  vkConnect = require('@vkontakte/vk-connect').default
+}) => {
   const generalErrorMessage = 'Во время репоста произошла ошибка. Попробуйте еще раз, пожалуйста.'
   const method = { photo: 'stories.getPhotoUploadServer', video: 'stories.getVideoUploadServer' }
-  const vkConnect = require('@vkontakte/vk-connect').default
 
   if (!file || !type) {
     throw new RichError(generalErrorMessage)
@@ -384,9 +396,11 @@ export const repostToVkStories = async ({ vkToken, file, type, link = { type: ''
 
   return axios.post(response.upload_url, body, { headers: { 'Content-Type': 'multipart/form-data' } })
 }
-export const repostToVkWall = ({ message, attachments }) => {
-  const vkConnect = require('@vkontakte/vk-connect').default
-
+export const repostToVkWall = ({
+  message,
+  attachments,
+  vkConnect = require('@vkontakte/vk-connect').default
+}) => {
   return vkConnect.sendPromise('VKWebAppShowWallPostBox', {
     message,
     attachments,
@@ -394,8 +408,7 @@ export const repostToVkWall = ({ message, attachments }) => {
     close_comments: 1
   })
 }
-export const askForVkNotificationsSending = async () => {
-  const vkConnect = require('@vkontakte/vk-connect').default
+export const askForVkNotificationsSending = async (vkConnect = require('@vkontakte/vk-connect').default) => {
   let result
 
   try {
@@ -415,11 +428,11 @@ export const openVkPayWindow = async ({
   merchantData,
   merchantSign,
   orderId,
-  ts
+  ts,
+  vkConnect = require('@vkontakte/vk-connect').default
 }) => {
   const action = 'pay-to-service'
   const generalErrorMessage = 'Во время оплаты произошла ошибка. Попробуйте еще раз, пожалуйста.'
-  const vkConnect = require('@vkontakte/vk-connect').default
   let result
 
   try {
