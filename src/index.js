@@ -233,7 +233,7 @@ export const executeVkApiMethods = async ({
 
     return currentSize.url
   }
-  let response
+  let response = {}
 
   try {
     ({ response } = await vkConnect.sendPromise('VKWebAppCallAPIMethod', {
@@ -315,11 +315,11 @@ export const executeVkApiMethods = async ({
   }
 
   return {
-    vkCountriesById: vkCountryIds && response.countries.reduce(...entityReducer),
-    vkCitiesById: vkCityIds && response.cities.reduce(...entityReducer),
-    vkUsers: vkUserIds && response.users.map(unescapeHtmlCharsFromVkUserData),
-    vkGroups: vkGroupsOfUserId && response.groups.items,
-    vkPhotos: vkPhotosOfUserId && response.photos.items.map(photosMapper)
+    vkCountriesById: vkCountryIds && (response.countries || []).reduce(...entityReducer),
+    vkCitiesById: vkCityIds && (response.cities || []).reduce(...entityReducer),
+    vkUsers: vkUserIds && (response.users || []).map(unescapeHtmlCharsFromVkUserData),
+    vkGroups: vkGroupsOfUserId && ((response.groups || {}).items || []),
+    vkPhotos: vkPhotosOfUserId && ((response.photos || {}).items || []).map(photosMapper)
   }
 }
 export const getVkImagesNativeViewer = ({
@@ -329,7 +329,7 @@ export const getVkImagesNativeViewer = ({
 }) => {
   return vkConnect.sendPromise('VKWebAppShowImages', { images, start_index: startIndex })
 }
-export const getInitialVkUserData = async (vkConnect = require('@vkontakte/vk-connect').default) => {
+export const getInitialVkUserData = async ({ vkConnect = require('@vkontakte/vk-connect').default }) => {
   let result
 
   try {
