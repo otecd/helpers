@@ -1,4 +1,4 @@
-import axios from 'axios'
+import fetch from 'isomorphic-unfetch'
 import { AllHtmlEntities } from 'html-entities'
 import { hashHmacWithBase64 } from '@noname.team/crypto'
 import RichError from '@noname.team/rich-error'
@@ -373,10 +373,14 @@ export const repostToVkStories = async ({
   }
 
   if (typeof (file) === 'string' && (file.includes('http'))) {
-    const response = await axios.get(file, { responseType: 'arraybuffer' })
-    const image = btoa((new Uint8Array(response.data)).reduce((data, byte) => data + String.fromCharCode(byte), ''))
+    const response = await fetch(file, {
+      method: 'GET',
+      mode: 'no-cors'
+    })
+    const buffer = await response.arrayBuffer()
+    const image = btoa((new Uint8Array(buffer)).reduce((data, byte) => data + String.fromCharCode(byte), ''))
 
-    return repostToVkStories({ vkToken, file: base64toBlob(image, response.headers['content-type']), type, link })
+    return repostToVkStories({ vkToken, file: base64toBlob(image), type, link })
   }
 
   const { response } = await vkConnect.sendPromise('VKWebAppCallAPIMethod', {
@@ -394,7 +398,11 @@ export const repostToVkStories = async ({
 
   body.append('file', file, fileName[type])
 
-  return axios.post(response.upload_url, body, { headers: { 'Content-Type': 'multipart/form-data' } })
+  return fetch(response.upload_url, {
+    method: 'POST',
+    mode: 'no-cors',
+    body
+  })
 }
 export const repostToVkWall = ({
   message,
