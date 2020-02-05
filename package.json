@@ -10,26 +10,36 @@
     "access": "public"
   },
   "scripts": {
-    "build": "neutrino build",
-    "lint": "neutrino lint",
-    "lint:fix": "npm run lint -- --fix",
-    "test": "neutrino test"
+    "build": "webpack --mode production",
+    "lint": "standard"
   },
   "keywords": [],
-  "author": "Dmitrii Pron <idimzz@gmail.com>",
+  "author": "Noname.Team Developers",
+  "contributors": [
+    "Dmitrii Pron <idimzz@gmail.com>",
+    "Maksim Dudinov <super.helper.cpm@gmail.com>"
+  ],
   "license": "ISC",
   "devDependencies": {
-    "@neutrinojs/library": "^8.3.0",
-    "@neutrinojs/mocha": "^8.3.0",
-    "@neutrinojs/standardjs": "^8.3.0",
-    "babel-plugin-dynamic-import-node": "^2.3.0",
-    "neutrino": "^8.3.0"
+    "@neutrinojs/library": "^9.1.0",
+    "neutrino": "^9.1.0",
+    "standard": "^14.3.1",
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10"
   },
   "dependencies": {
     "@noname.team/crypto": "^1.0.5",
-    "@noname.team/rich-error": "^1.2.3",
+    "@noname.team/errors": "^1.1.0",
     "@vkontakte/vk-connect": "^1.6.9",
-    "axios": "^0.19.0",
-    "html-entities": "^1.2.1"
+    "html-entities": "^1.2.1",
+    "isomorphic-unfetch": "^3.0.0"
+  },
+  "standard": {
+    "globals": [
+      "FormData",
+      "atob",
+      "btoa",
+      "Blob"
+    ]
   }
 }

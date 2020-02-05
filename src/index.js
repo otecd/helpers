@@ -1,7 +1,7 @@
-import axios from 'axios'
+import fetch from 'isomorphic-unfetch'
 import { AllHtmlEntities } from 'html-entities'
 import { hashHmacWithBase64 } from '@noname.team/crypto'
-import RichError from '@noname.team/rich-error'
+import { RichError, HttpError } from '@noname.team/errors'
 
 const entities = new AllHtmlEntities()
 
@@ -138,14 +138,14 @@ export const getVkToken = async ({
   } catch (error) {
     if (typeof error === 'object') {
       if (error.error_data && error.error_data.error_code && error.error_data.error_code === 4) {
-        throw new RichError('Запрос на предоставление доступов был отклонен.', 423, RichError.codes.REJECTED_SCOPES_REQUEST)
+        throw new HttpError(423)
       }
     }
-    throw new RichError('Произошла ошибка во время получения токена VK.')
+    throw new HttpError()
   }
 
   if (scopeList.length && (!result.scope || result.scope.split(',').length < scopeList.length)) {
-    throw new RichError('Количество отмеченных доступов меньше ожидаемого.', 416, RichError.codes.INSUFFICIENT_SCOPES_RANGE)
+    throw new HttpError(416)
   }
 
   return result.access_token
@@ -155,24 +155,18 @@ export const searchVkCountries = async ({
   value,
   vkConnect = require('@vkontakte/vk-connect').default
 }) => {
-  let response
+  const getCountriesResponse = await vkConnect.sendPromise('VKWebAppCallAPIMethod', {
+    method: 'database.getCountries',
+    params: {
+      need_all: 1,
+      count: 1000,
+      v: '5.102',
+      lang: 'ru',
+      access_token: vkToken
+    }
+  })
 
-  try {
-    ({ response } = await vkConnect.sendPromise('VKWebAppCallAPIMethod', {
-      method: 'database.getCountries',
-      params: {
-        need_all: 1,
-        count: 1000,
-        v: '5.102',
-        lang: 'ru',
-        access_token: vkToken
-      }
-    }))
-  } catch (error) {
-    throw error
-  }
-
-  return response.items
+  return getCountriesResponse.response.items
     .filter(c => c.title.toLowerCase()
       .startsWith(value))
     .map(({ id, title }) => ({ value: unescapeHtmlChars(title), vkFieldId: id }))
@@ -183,26 +177,20 @@ export const searchVkCities = async ({
   vkCountryId,
   vkConnect = require('@vkontakte/vk-connect').default
 }) => {
-  let response
+  const getCitiesResponse = await vkConnect.sendPromise('VKWebAppCallAPIMethod', {
+    method: 'database.getCities',
+    params: {
+      country_id: vkCountryId,
+      q: value,
+      need_all: 1,
+      count: 1000,
+      v: '5.102',
+      lang: 'ru',
+      access_token: vkToken
+    }
+  })
 
-  try {
-    ({ response } = await vkConnect.sendPromise('VKWebAppCallAPIMethod', {
-      method: 'database.getCities',
-      params: {
-        country_id: vkCountryId,
-        q: value,
-        need_all: 1,
-        count: 1000,
-        v: '5.102',
-        lang: 'ru',
-        access_token: vkToken
-      }
-    }))
-  } catch (error) {
-    throw error
-  }
-
-  return response.items.map(({
+  return getCitiesResponse.response.items.map(({
     id,
     title,
     region
@@ -233,93 +221,87 @@ export const executeVkApiMethods = async ({
 
     return currentSize.url
   }
-  let response = {}
-
-  try {
-    ({ response } = await vkConnect.sendPromise('VKWebAppCallAPIMethod', {
-      method: 'execute',
-      params: {
-        code: `
-          return {
-            ${vkCountryIds ? `
-              countries: API.database.getCountriesById({
-                country_ids: '${vkCountryIds.join(',')}',
-                v: '5.102'
-              }),
-            ` : ''}
-            ${vkCityIds ? `
-              cities: API.database.getCitiesById({
-                city_ids: '${vkCityIds.join(',')}',
-                v: '5.102'
-              }),
-            ` : ''}
-            ${vkUserIds ? `
-              users: API.users.get({
-                user_ids: '${vkUserIds.join(',')}',
-                fields: 'timezone,about,sex,city,country,bdate,photo_200,photo_max_orig',
-                v: '5.102'
-              }),
-            ` : ''}
-            ${vkGroupsOfUserId ? `
-              groups: API.groups.get({
-                user_id: ${vkGroupsOfUserId},
-                v: '5.102'
-              }),
-            ` : ''}
-          };
-        `,
-        access_token: vkToken,
-        lang: 'ru',
-        v: '5.102'
-      }
-    }))
-    if (vkPhotosOfUserId) {
-      response.photos = await new Promise((resolve, reject) => {
-        setTimeout(async () => {
-          let vkApiPhotosData
-
-          try {
-            vkApiPhotosData = await vkConnect.sendPromise('VKWebAppCallAPIMethod', {
-              method: 'photos.get',
-              params: {
-                owner_id: vkPhotosOfUserId,
-                album_id: 'profile',
-                rev: 1,
-                count: 10,
-                v: '5.102',
-                lang: 'ru',
-                access_token: vkToken
-              }
-            })
-          } catch (error) {
-            if (error.error_data && !error.error_data.error_reason) {
-              if (error.error_data.error_code === 30) {
-                return resolve({ items: [] })
-              }
-              return reject(new RichError(error.error_data.error_msg))
-            }
-            if (error.error_data && error.error_data.error_reason) {
-              if (error.error_data.error_reason.error_code === 30) {
-                return resolve({ items: [] })
-              }
-              return reject(new RichError(error.error_data.error_reason.error_msg))
-            }
-            return reject(new RichError('Ошибка при получении фотографий из VK'))
-          }
-          return resolve(vkApiPhotosData.response)
-        }, 1000)
-      })
+  const executeResponse = await vkConnect.sendPromise('VKWebAppCallAPIMethod', {
+    method: 'execute',
+    params: {
+      code: `
+        return {
+          ${vkCountryIds ? `
+            countries: API.database.getCountriesById({
+              country_ids: '${vkCountryIds.join(',')}',
+              v: '5.102'
+            }),
+          ` : ''}
+          ${vkCityIds ? `
+            cities: API.database.getCitiesById({
+              city_ids: '${vkCityIds.join(',')}',
+              v: '5.102'
+            }),
+          ` : ''}
+          ${vkUserIds ? `
+            users: API.users.get({
+              user_ids: '${vkUserIds.join(',')}',
+              fields: 'timezone,about,sex,city,country,bdate,photo_200,photo_max_orig',
+              v: '5.102'
+            }),
+          ` : ''}
+          ${vkGroupsOfUserId ? `
+            groups: API.groups.get({
+              user_id: ${vkGroupsOfUserId},
+              v: '5.102'
+            }),
+          ` : ''}
+        };
+      `,
+      access_token: vkToken,
+      lang: 'ru',
+      v: '5.102'
     }
-  } catch (error) {
-    throw error
+  })
+  if (vkPhotosOfUserId) {
+    executeResponse.response.photos = await new Promise((resolve, reject) => {
+      setTimeout(async () => {
+        let vkApiPhotosData
+
+        try {
+          vkApiPhotosData = await vkConnect.sendPromise('VKWebAppCallAPIMethod', {
+            method: 'photos.get',
+            params: {
+              owner_id: vkPhotosOfUserId,
+              album_id: 'profile',
+              rev: 1,
+              count: 10,
+              v: '5.102',
+              lang: 'ru',
+              access_token: vkToken
+            }
+          })
+        } catch (error) {
+          if (error.error_data && !error.error_data.error_reason) {
+            if (error.error_data.error_code === 30) {
+              return resolve({ items: [] })
+            }
+            return reject(new RichError(error.error_data.error_msg, 400))
+          }
+          if (error.error_data && error.error_data.error_reason) {
+            if (error.error_data.error_reason.error_code === 30) {
+              return resolve({ items: [] })
+            }
+            return reject(new RichError(error.error_data.error_reason.error_msg, 400))
+          }
+          return reject(new RichError('Ошибка при получении фотографий из VK', 400))
+        }
+        return resolve(vkApiPhotosData.response)
+      }, 1000)
+    })
   }
 
   return {
-    vkCountriesById: vkCountryIds && (response.countries || []).reduce(...entityReducer),
-    vkCitiesById: vkCityIds && (response.cities || []).reduce(...entityReducer),
-    vkUsers: vkUserIds && (response.users || []).map(unescapeHtmlCharsFromVkUserData),
-    vkGroups: vkGroupsOfUserId && ((response.groups || {}).items || []),
-    vkPhotos: vkPhotosOfUserId && ((response.photos || {}).items || []).map(photosMapper)
+    vkCountriesById: vkCountryIds && (executeResponse.response.countries || []).reduce(...entityReducer),
+    vkCitiesById: vkCityIds && (executeResponse.response.cities || []).reduce(...entityReducer),
+    vkUsers: vkUserIds && (executeResponse.response.users || []).map(unescapeHtmlCharsFromVkUserData),
+    vkGroups: vkGroupsOfUserId && ((executeResponse.response.groups || {}).items || []),
+    vkPhotos: vkPhotosOfUserId && ((executeResponse.response.photos || {}).items || []).map(photosMapper)
   }
 }
 export const getVkImagesNativeViewer = ({
@@ -329,16 +311,10 @@ export const getVkImagesNativeViewer = ({
 }) => {
   return vkConnect.sendPromise('VKWebAppShowImages', { images, start_index: startIndex })
 }
-export const getInitialVkUserData = async ({ vkConnect = require('@vkontakte/vk-connect').default }) => {
-  let result
-
-  try {
-    result = await vkConnect.sendPromise('VKWebAppGetUserInfo', {
-      params: { lang: 'ru' }
-    })
-  } catch (error) {
-    throw error
-  }
+export const getInitialVkUserData = async ({ vkConnect = require('@vkontakte/vk-connect').default, lang = 'ru' }) => {
+  const result = await vkConnect.sendPromise('VKWebAppGetUserInfo', {
+    params: { lang }
+  })
 
   return unescapeHtmlCharsFromVkUserData(result)
 }
@@ -365,18 +341,21 @@ export const repostToVkStories = async ({
   link = { type: '', url: '' },
   vkConnect = require('@vkontakte/vk-connect').default
 }) => {
-  const generalErrorMessage = 'Во время репоста произошла ошибка. Попробуйте еще раз, пожалуйста.'
   const method = { photo: 'stories.getPhotoUploadServer', video: 'stories.getVideoUploadServer' }
 
   if (!file || !type) {
-    throw new RichError(generalErrorMessage)
+    throw new HttpError(406)
   }
 
   if (typeof (file) === 'string' && (file.includes('http'))) {
-    const response = await axios.get(file, { responseType: 'arraybuffer' })
-    const image = btoa((new Uint8Array(response.data)).reduce((data, byte) => data + String.fromCharCode(byte), ''))
+    const response = await fetch(file, {
+      method: 'GET',
+      mode: 'no-cors'
+    })
+    const buffer = await response.arrayBuffer()
+    const image = btoa((new Uint8Array(buffer)).reduce((data, byte) => data + String.fromCharCode(byte), ''))
 
-    return repostToVkStories({ vkToken, file: base64toBlob(image, response.headers['content-type']), type, link })
+    return repostToVkStories({ vkToken, file: base64toBlob(image), type, link })
   }
 
   const { response } = await vkConnect.sendPromise('VKWebAppCallAPIMethod', {
@@ -394,7 +373,11 @@ export const repostToVkStories = async ({
 
   body.append('file', file, fileName[type])
 
-  return axios.post(response.upload_url, body, { headers: { 'Content-Type': 'multipart/form-data' } })
+  return fetch(response.upload_url, {
+    method: 'POST',
+    mode: 'no-cors',
+    body
+  })
 }
 export const repostToVkWall = ({
   message,
@@ -432,7 +415,6 @@ export const openVkPayWindow = async ({
   vkConnect = require('@vkontakte/vk-connect').default
 }) => {
   const action = 'pay-to-service'
-  const generalErrorMessage = 'Во время оплаты произошла ошибка. Попробуйте еще раз, пожалуйста.'
   let result
 
   try {
@@ -456,11 +438,11 @@ export const openVkPayWindow = async ({
       }
     }))
   } catch (error) {
-    throw new RichError(generalErrorMessage)
+    throw new HttpError(402)
   }
 
   if (!result.status) {
-    throw new RichError(generalErrorMessage)
+    throw new HttpError(402)
   }
 
   return true
