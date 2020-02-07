@@ -354,8 +354,11 @@ export const repostToVkStories = async ({
     })
     const buffer = await response.arrayBuffer()
     const image = btoa((new Uint8Array(buffer)).reduce((data, byte) => data + String.fromCharCode(byte), ''))
-
-    return repostToVkStories({ vkToken, file: base64toBlob(image), type, link })
+    if (!image) {
+      throw new HttpError(406)
+    } else {
+      return repostToVkStories({ vkToken, file: base64toBlob(image), type, link })
+    }
   }
 
   const { response } = await vkConnect.sendPromise('VKWebAppCallAPIMethod', {
