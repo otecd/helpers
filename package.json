@@ -2,9 +2,9 @@
   "name": "@noname.team/helpers",
   "version": "3.0.0",
   "description": "Helper functions",
-  "main": "build/index.js",
+  "main": "for/index.js",
   "files": [
-    "build"
+    "for"
   ],
   "publishConfig": {
     "access": "public"
