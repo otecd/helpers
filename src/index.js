@@ -1,7 +1,8 @@
 import fetch from 'isomorphic-unfetch'
 import { AllHtmlEntities } from 'html-entities'
 import { hashHmacWithBase64 } from '@noname.team/crypto'
-import { RichError, HttpError } from '@noname.team/errors'
+import { RichError } from '@noname.team/errors'
+import { error_codes as errorCodes } from './const.json'
 
 const entities = new AllHtmlEntities()
 
@@ -138,14 +139,14 @@ export const getVkToken = async ({
   } catch (error) {
     if (typeof error === 'object') {
       if (error.error_data && error.error_data.error_code && error.error_data.error_code === 4) {
-        throw new HttpError(423)
+        throw new RichError('Недостаточно прав для получения токена', errorCodes.ERR_VK_TOKEN_SCOPE_DENIED)
       }
     }
-    throw new HttpError()
+    throw new RichError('Ошибка во время получения токена', errorCodes.ERR_VK_TOKEN_OBTAINING_FAILURE)
   }
 
   if (scopeList.length && (!result.scope || result.scope.split(',').length < scopeList.length)) {
-    throw new HttpError(416)
+    throw new RichError('Недостаточно прав для получения токена', errorCodes.ERR_VK_TOKEN_SCOPE_DENIED)
   }
 
   return result.access_token
@@ -278,19 +279,18 @@ export const executeVkApiMethods = async ({
           })
         } catch (error) {
           if (error.error_data && !error.error_data.error_reason) {
-            if (error.error_data.error_code === 30) {
-              return resolve({ items: [] })
-            }
-            return reject(new RichError(error.error_data.error_msg, 400))
+            return error.error_data.error_code === 30
+              ? resolve({ items: [] })
+              : reject(new RichError(error.error_data.error_msg, errorCodes.ERR_VK_API_PHOTOS_GET_FAILED))
           }
           if (error.error_data && error.error_data.error_reason) {
-            if (error.error_data.error_reason.error_code === 30) {
-              return resolve({ items: [] })
-            }
-            return reject(new RichError(error.error_data.error_reason.error_msg, 400))
+            return error.error_data.error_reason.error_code === 30
+              ? resolve({ items: [] })
+              : reject(new RichError(error.error_data.error_reason.error_msg, errorCodes.ERR_VK_API_PHOTOS_GET_FAILED))
           }
-          return reject(new RichError('Ошибка при получении фотографий из VK', 400))
+          return reject(new RichError('Ошибка при получении фотографий из VK', errorCodes.ERR_VK_API_PHOTOS_GET_FAILED))
         }
+
         return resolve(vkApiPhotosData.response)
       }, 1000)
     })
@@ -344,7 +344,7 @@ export const repostToVkStories = async ({
   const method = { photo: 'stories.getPhotoUploadServer', video: 'stories.getVideoUploadServer' }
 
   if (!file || !type) {
-    throw new HttpError(406)
+    throw new RichError('Пропущены необходимые параметры', errorCodes.ERR_REQUIRED_ARGUMENT_MISSED)
   }
 
   if (typeof (file) === 'string' && (file.includes('http'))) {
@@ -354,8 +354,9 @@ export const repostToVkStories = async ({
     })
     const buffer = await response.arrayBuffer()
     const image = btoa((new Uint8Array(buffer)).reduce((data, byte) => data + String.fromCharCode(byte), ''))
+
     if (!image) {
-      throw new HttpError(406)
+      throw new RichError('Ошибка во время загрузки файла', errorCodes.ERR_FILE_CAN_NOT_BE_LOADED)
     } else {
       return repostToVkStories({ vkToken, file: base64toBlob(image), type, link })
     }
@@ -441,11 +442,11 @@ export const openVkPayWindow = async ({
       }
     }))
   } catch (error) {
-    throw new HttpError(402)
+    throw new RichError(error.message || 'Ошибка при проведении платежа', errorCodes.ERR_VK_PAY_PAYMENT_ABORTED)
   }
 
   if (!result.status) {
-    throw new HttpError(402)
+    throw new RichError('Ошибка при проведении платежа', errorCodes.ERR_VK_PAY_PAYMENT_ABORTED)
   }
 
   return true
@@ -515,6 +516,7 @@ export default {
   executeVkApiMethods,
   getVkImagesNativeViewer,
   getInitialVkUserData,
+  base64toBlob,
   repostToVkStories,
   repostToVkWall,
   askForVkNotificationsSending,
