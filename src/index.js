@@ -31,6 +31,7 @@ export const parseURLQuery = (str) => {
 
   return query
 }
+
 export const stringifyURLQuery = (params) => {
   const sortedParams = Object.keys(params)
     .sort()
@@ -44,6 +45,7 @@ export const stringifyURLQuery = (params) => {
 
   return searchParameters.toString()
 }
+
 export const replaceSubstr = (...args) => {
   let [s, p, r] = args || []
 
@@ -58,11 +60,14 @@ export const replaceSubstr = (...args) => {
     0: () => false
   }[args.length]()
 }
+
 export const unescapeHtmlChars = (v = '') => entities.decode(v)
+
 export const unescapeHtmlCharsFromVkGeoData = d => ({
   ...d,
   title: d.title ? unescapeHtmlChars(d.title) : d.title
 })
+
 export const unescapeHtmlCharsFromVkUserData = d => ({
   ...d,
   first_name: d.first_name ? unescapeHtmlChars(d.first_name) : d.first_name,
@@ -70,6 +75,7 @@ export const unescapeHtmlCharsFromVkUserData = d => ({
   city: typeof d.city === 'object' ? unescapeHtmlCharsFromVkGeoData(d.city) : d.city,
   country: typeof d.country === 'object' ? unescapeHtmlCharsFromVkGeoData(d.country) : d.country
 })
+
 export const getNumDescription = (n, textForms) => {
   const num = Math.abs(n) % 100
   const num1 = num % 10
@@ -85,8 +91,11 @@ export const getNumDescription = (n, textForms) => {
   }
   return textForms[2]
 }
+
 export const getAgeDescription = n => getNumDescription(n, ['год', 'года', 'лет'])
+
 export const getAge = birthDate => Math.trunc((new Date() - new Date(birthDate)) / (1000 * 60 * 60 * 24 * 365.245))
+
 export const formatVkBirthDate = (vkBDate) => {
   if (!vkBDate) {
     return new Date(2001, 0)
@@ -106,6 +115,7 @@ export const formatVkBirthDate = (vkBDate) => {
 
   return birthDate
 }
+
 export const addRequestPagination = ({ limit = 20, offset = 0 } = {}) => `limit=${limit}&offset=${offset}`
 
 export const base64toBlob = (b64Data, contentType = '', sliceSize = 512) => {
