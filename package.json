@@ -1,6 +1,6 @@
 {
   "name": "@noname.team/helpers",
-  "version": "2.0.1",
+  "version": "3.0.0",
   "description": "Helper functions",
   "main": "build/index.js",
   "files": [
@@ -10,8 +10,9 @@
     "access": "public"
   },
   "scripts": {
+    "lint": "standard",
     "build": "webpack --mode production",
-    "lint": "standard"
+    "document": "esdoc"
   },
   "keywords": [],
   "author": "Noname.Team Developers",
@@ -22,6 +23,8 @@
   "license": "ISC",
   "devDependencies": {
     "@neutrinojs/library": "^9.1.0",
+    "esdoc": "^1.1.0",
+    "esdoc-standard-plugin": "^1.0.0",
     "neutrino": "^9.1.0",
     "standard": "^14.3.1",
     "webpack": "^4.41.5",
@@ -31,8 +34,11 @@
     "@noname.team/crypto": "^1.0.5",
     "@noname.team/errors": "^1.1.0",
     "@vkontakte/vk-connect": "^1.6.9",
+    "@vkontakte/vk-connect-mock": "^2.1.0",
     "html-entities": "^1.2.1",
-    "isomorphic-unfetch": "^3.0.0"
+    "isomorphic-unfetch": "^3.0.0",
+    "sharp": "^0.24.0",
+    "wget-improved": "^3.0.2"
   },
   "standard": {
     "globals": [
@@ -40,6 +46,15 @@
       "atob",
       "btoa",
       "Blob"
+    ]
+  },
+  "esdoc": {
+    "source": "./src",
+    "destination": "./docs",
+    "plugins": [
+      {
+        "name": "esdoc-standard-plugin"
+      }
     ]
   }
 }

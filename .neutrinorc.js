@@ -1,6 +1,13 @@
 const library = require('@neutrinojs/library')
 
 module.exports = {
+  options: {
+    mains: {
+      index: 'index',
+      client: 'client',
+      server: 'server'
+    }
+  },
   use: [
     library({
       name: 'Helpers'
