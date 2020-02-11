@@ -31,6 +31,7 @@
     "@noname.team/crypto": "^1.0.5",
     "@noname.team/errors": "^1.1.0",
     "@vkontakte/vk-connect": "^1.6.9",
+    "@vkontakte/vk-connect-mock": "^2.1.0",
     "html-entities": "^1.2.1",
     "isomorphic-unfetch": "^3.0.0"
   },
