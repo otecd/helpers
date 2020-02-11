@@ -1,6 +1,6 @@
 {
   "name": "@noname.team/helpers",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Helper functions",
   "main": "for/index.js",
   "files": [
