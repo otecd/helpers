@@ -160,7 +160,7 @@ export const searchVkCountries = async ({
     params: {
       need_all: 1,
       count: 1000,
-      v: '5.102',
+      v: '5.103',
       lang: 'ru',
       access_token: vkToken
     }
@@ -184,7 +184,7 @@ export const searchVkCities = async ({
       q: value,
       need_all: 1,
       count: 1000,
-      v: '5.102',
+      v: '5.103',
       lang: 'ru',
       access_token: vkToken
     }
@@ -229,33 +229,33 @@ export const executeVkApiMethods = async ({
           ${vkCountryIds ? `
             countries: API.database.getCountriesById({
               country_ids: '${vkCountryIds.join(',')}',
-              v: '5.102'
+              v: '5.103'
             }),
           ` : ''}
           ${vkCityIds ? `
             cities: API.database.getCitiesById({
               city_ids: '${vkCityIds.join(',')}',
-              v: '5.102'
+              v: '5.103'
             }),
           ` : ''}
           ${vkUserIds ? `
             users: API.users.get({
               user_ids: '${vkUserIds.join(',')}',
               fields: 'timezone,about,sex,city,country,bdate,photo_200,photo_max_orig',
-              v: '5.102'
+              v: '5.103'
             }),
           ` : ''}
           ${vkGroupsOfUserId ? `
             groups: API.groups.get({
               user_id: ${vkGroupsOfUserId},
-              v: '5.102'
+              v: '5.103'
             }),
           ` : ''}
         };
       `,
       access_token: vkToken,
       lang: 'ru',
-      v: '5.102'
+      v: '5.103'
     }
   })
   if (vkPhotosOfUserId) {
@@ -271,7 +271,7 @@ export const executeVkApiMethods = async ({
               album_id: 'profile',
               rev: 1,
               count: 10,
-              v: '5.102',
+              v: '5.103',
               lang: 'ru',
               access_token: vkToken
             }
@@ -364,7 +364,7 @@ export const repostToVkStories = async ({
   const { response } = await vkConnect.sendPromise('VKWebAppCallAPIMethod', {
     method: method[type],
     params: {
-      v: '5.102',
+      v: '5.103',
       access_token: vkToken,
       add_to_news: 1,
       link_text: link.type,
