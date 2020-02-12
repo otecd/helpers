@@ -1,3 +1,5 @@
+import crypto from 'crypto'
+import cryptoJs from 'crypto-js'
 import { AllHtmlEntities } from 'html-entities'
 
 const entities = new AllHtmlEntities()
@@ -135,6 +137,20 @@ export const base64toBlob = (b64Data, contentType = '', sliceSize = 512) => {
   return new Blob(byteArrays, { type: contentType })
 }
 
+export const sha1 = v => crypto.createHash('sha1')
+  .update(v, 'binary')
+  .digest('hex')
+
+export const md5 = v => crypto.createHash('md5')
+  .update(typeof v === 'string' ? v : JSON.stringify(v))
+  .digest('hex')
+
+export const encrypt = (v, salt) => cryptoJs.AES.encrypt(typeof v === 'string' ? v : JSON.stringify(v), salt)
+  .toString()
+
+export const decrypt = (v, salt) => JSON.parse(cryptoJs.AES.decrypt(v, salt)
+  .toString(cryptoJs.enc.Utf8))
+
 export default {
   parseURLQuery,
   stringifyURLQuery,
@@ -147,5 +163,9 @@ export default {
   getAge,
   formatVkBirthDate,
   addRequestPagination,
-  base64toBlob
+  base64toBlob,
+  sha1,
+  md5,
+  encrypt,
+  decrypt
 }
