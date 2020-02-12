@@ -1,6 +1,6 @@
 {
   "name": "@noname.team/helpers",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "description": "Helper functions",
   "main": "for/index.js",
   "files": [
@@ -35,6 +35,8 @@
     "@noname.team/errors": "^1.1.0",
     "@vkontakte/vk-connect": "^1.6.9",
     "@vkontakte/vk-connect-mock": "^2.1.0",
+    "crypto": "^1.0.1",
+    "crypto-js": "^4.0.0",
     "html-entities": "^1.2.1",
     "isomorphic-unfetch": "^3.0.0",
     "sharp": "^0.24.0",

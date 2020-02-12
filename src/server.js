@@ -1,9 +1,15 @@
-import { hashHmacWithBase64 } from '@noname.team/crypto'
-import { RichError } from '@noname.team/errors'
+import fs from 'fs'
+import crypto from 'crypto'
 import wget from 'wget-improved'
 import sharp from 'sharp'
+import { RichError } from '@noname.team/errors'
 import { stringifyURLQuery, replaceSubstr } from './index'
 import { error_codes as errorCodes } from './const.json'
+
+export const hashHmacWithBase64 = (algo = 'sha256', v, k) => crypto.createHmac(algo, k)
+  .update(v)
+  .digest()
+  .toString('base64')
 
 export const validateVkSign = (data, secret) => {
   const { sign } = data
@@ -19,6 +25,14 @@ export const validateVkSign = (data, secret) => {
   }
 
   return signGenerated === sign
+}
+
+export const checkSignature = (data, sig, keyPath) => {
+  const key = fs.readFileSync(keyPath)
+
+  return crypto.createVerify('SHA1')
+    .update(data)
+    .verify(key, sig, 'base64')
 }
 
 /**
@@ -67,7 +81,9 @@ export const validateImageFile = async (imagePath) => {
 }
 
 export default {
+  hashHmacWithBase64,
   validateVkSign,
+  checkSignature,
   downloadFileByURL,
   validateImageFile
 }
