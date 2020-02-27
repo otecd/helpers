@@ -339,6 +339,40 @@ export const openVkPayWindow = async ({
   return true
 }
 
+export const openVkShowStoryBox = async ({
+  backgroundType,
+  attachmentText,
+  attachmentType,
+  attachmentUrl,
+  url,
+  locked,
+  isMock
+}) => {
+  const vkC = isMock ? vkConnectMock : vkConnect
+  let result
+
+  try {
+    ({ result } = await vkC.sendPromise('VKWebAppShowStoryBox', {
+      background_type: backgroundType,
+      attachment: {
+        text: attachmentText,
+        type: attachmentType,
+        url: attachmentUrl
+      },
+      url,
+      locked: locked
+    }))
+  } catch (error) {
+    throw new RichError(error.message || 'Ошибка при открытие редактора историй', errorCodes.ERR_VK_OPEN_STORY)
+  }
+
+  if (!result.status) {
+    throw new RichError('Ошибка при открытие редактора историй', errorCodes.ERR_VK_OPEN_STORY)
+  }
+
+  return true
+}
+
 export default {
   getVkToken,
   searchVkCountries,
@@ -349,5 +383,6 @@ export default {
   repostToVkStories,
   repostToVkWall,
   askForVkNotificationsSending,
-  openVkPayWindow
+  openVkPayWindow,
+  openVkShowStoryBox
 }
