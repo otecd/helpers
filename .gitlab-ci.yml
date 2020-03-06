@@ -35,7 +35,6 @@ development:
 
 production:
   stage: publish
-  when: manual
   script:
     - npm run build
     - touch ".npmrc"
