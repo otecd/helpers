@@ -26,7 +26,7 @@
   "scripts": {
     "lint": "standard",
     "build": "webpack --mode production",
-    "prepack": "npm run build && cp -r ./build/* . && rm -rf ./build",
+    "pack:prepare": "npm run build && cp -r ./build/* . && rm -rf ./build",
     "document": "esdoc"
   },
   "keywords": [],
