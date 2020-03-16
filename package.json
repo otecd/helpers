@@ -4,7 +4,19 @@
   "description": "Helper functions",
   "main": "index.js",
   "files": [
-    "*.js",
+    "base64-to-blob.js",
+    "decrypt-aes.js",
+    "encrypt-aes.js",
+    "get-age.js",
+    "get-num-description.js",
+    "hash-hmac-with-base64.js",
+    "index.js",
+    "md5.js",
+    "parse-url-query.js",
+    "replace-substr.js",
+    "sha1.js",
+    "stringify-url-query.js",
+    "vk-format-birth-date.js",
     "client",
     "server"
   ],
@@ -15,7 +27,6 @@
     "lint": "standard",
     "build": "webpack --mode production",
     "prepack": "npm run build && cp -r ./build/* . && rm -rf ./build",
-    "postpack": "git clean -fd",
     "document": "esdoc"
   },
   "keywords": [],
