@@ -1,48 +1,55 @@
-image: node:12
-
 workflow:
   rules:
     - if: $CI_MERGE_REQUEST_ID
     - if: $CI_COMMIT_TAG
 
-before_script:
-  - npm -v
-  - node -v
-  - npm i -s
-
 stages:
   - test
+  - build
   - publish
 
 lint:
   stage: test
+  image: node:12
   script:
+    - npm i -s
     - npm run lint
   rules:
     - if: '$CI_COMMIT_TAG == null'
       when: always
 
+build:
+  stage: build
+  image: node:12
+  script:
+    - npm i -s
+    - npm pack
+    - mkdir artifacts
+    - mv *.tgz artifacts/
+  rules:
+    - if: '$CI_COMMIT_TAG != null'
+      when: always
+  artifacts:
+    paths: ['artifacts']
+    expire_in: 2 days
+
 development:
   stage: publish
+  image: python:latest
   script:
-    - npm run build
-    - touch ".npmrc"
-    - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> "/builds/noname.team/libraries/helpers/.npmrc"
-    - npm publish --access public
+    - pip install awscli
+    - aws --endpoint-url=https://storage.yandexcloud.net s3 cp ./artifacts/ s3://dev-bucket-packages/ --recursive --exclude "*" --include "*.tgz"
   rules:
-    - if: '$CI_COMMIT_TAG =~ /^v\d\.\d\.\d\-dev\-.+$/'
-      when: always
+    - if: '$CI_COMMIT_TAG =~ /dev\-.+$/'
+      when: on_success
 
 production:
   stage: publish
   script:
-    - npm run build
+    - npm i -s
     - touch ".npmrc"
-    - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> "/builds/noname.team/libraries/helpers/.npmrc"
+    - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> ".npmrc"
     - npm publish --access public
   rules:
     - if: '$CI_COMMIT_TAG =~ /^v\d\.\d\.\d$/'
       when: manual
-
-after_script:
-  - rm -rf node_modules package-lock.json .npmrc build
