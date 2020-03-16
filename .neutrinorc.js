@@ -2,7 +2,6 @@ const library = require('@neutrinojs/library')
 
 module.exports = {
   options: {
-    output: 'for',
     mains: {
       index: 'index',
       client: 'client',
@@ -12,7 +11,10 @@ module.exports = {
   use: [
     library({
       name: 'Helpers',
-      target: 'node'
+      target: 'node',
+      targets: {
+        node: '12'
+      }
     }),
     (neutrino) => {
       if (process.env.NODE_ENV === 'production') {

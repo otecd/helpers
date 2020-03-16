@@ -2,9 +2,11 @@
   "name": "@noname.team/helpers",
   "version": "3.2.0",
   "description": "Helper functions",
-  "main": "for/index.js",
+  "main": "index.js",
   "files": [
-    "for"
+    "*.js",
+    "client",
+    "server"
   ],
   "publishConfig": {
     "access": "public"
@@ -12,6 +14,8 @@
   "scripts": {
     "lint": "standard",
     "build": "webpack --mode production",
+    "prepack": "npm run build && cp -r ./build/* . && rm -rf ./build",
+    "postpack": "git clean -fd",
     "document": "esdoc"
   },
   "keywords": [],
