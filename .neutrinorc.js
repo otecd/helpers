@@ -32,6 +32,9 @@ module.exports = {
       target: 'node',
       targets: {
         node: '12'
+      },
+      externals: {
+        whitelist: ['@noname.team/errors']
       }
     }),
     (neutrino) => {
