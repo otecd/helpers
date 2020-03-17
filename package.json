@@ -35,6 +35,14 @@
     "Dmitrii Pron <idimzz@gmail.com>",
     "Maksim Dudinov <super.helper.cpm@gmail.com>"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@gitlab.com:noname.team/libraries/helpers.git"
+  },
+  "bugs": {
+    "url": "https://gitlab.com/noname.team/libraries/helpers/issues"
+  },
+  "homepage": "https://gitlab.com/noname.team/libraries/helpers/-/blob/master/README.md",
   "license": "ISC",
   "devDependencies": {
     "@neutrinojs/library": "^9.1.0",
@@ -48,9 +56,8 @@
   "dependencies": {
     "@noname.team/crypto": "^1.0.5",
     "@noname.team/errors": "^1.1.0",
-    "@vkontakte/vk-connect": "^1.6.9",
-    "@vkontakte/vk-connect-mock": "^2.1.0",
-    "crypto": "^1.0.1",
+    "@vkontakte/vk-bridge": "^2.1.2",
+    "@vkontakte/vk-bridge-mock": "^2.0.3",
     "crypto-js": "^4.0.0",
     "html-entities": "^1.2.1",
     "isomorphic-unfetch": "^3.0.0",

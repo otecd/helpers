@@ -1,5 +1,5 @@
-import vkConnect from '@vkontakte/vk-connect'
-import vkConnectMock from '@vkontakte/vk-connect-mock'
+import vkBridge from '@vkontakte/vk-bridge'
+import vkBridgeMock from '@vkontakte/vk-bridge-mock'
 import fetch from 'isomorphic-unfetch'
 import { AllHtmlEntities } from 'html-entities'
 import { RichError } from '@noname.team/errors'
@@ -11,7 +11,7 @@ export default class Vk {
     apiVersion = '5.103',
     lang = 'ru'
   }) {
-    this.bridge = isMock ? vkConnectMock : vkConnect
+    this.bridge = isMock ? vkBridgeMock : vkBridge
     this.apiVersion = apiVersion
     this.lang = lang
     this.entities = new AllHtmlEntities()
