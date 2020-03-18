@@ -1,171 +1,38 @@
-import crypto from 'crypto'
-import cryptoJs from 'crypto-js'
-import { AllHtmlEntities } from 'html-entities'
+import parseURLQuery from './parse-url-query'
+import stringifyURLQuery from './stringify-url-query'
+import replaceSubstr from './replace-substr'
+import getNumDescription from './get-num-description'
+import getAge from './get-age'
+import base64toBlob from './base64-to-blob'
+import sha1 from './sha1'
+import md5 from './md5'
+import encryptAES from './encrypt-aes'
+import decryptAES from './decrypt-aes'
+import vkFormatBirthDate from './vk-format-birth-date'
 
-const entities = new AllHtmlEntities()
-
-export const parseURLQuery = (str) => {
-  if (typeof str !== 'string' || !str.length) {
-    return {}
-  }
-
-  const s = str.split('&')
-  const query = {}
-  let bit
-  let first
-  let second
-
-  for (let i = 0; i < s.length; i++) {
-    bit = s[i].split('=')
-    first = decodeURIComponent(bit[0])
-
-    if (first.length && (first.startsWith('vk_') || first === 'sign')) {
-      second = decodeURIComponent(bit[1])
-      if (typeof query[first] === 'undefined') {
-        query[first] = second
-      } else if (Array.isArray(query[first])) {
-        query[first].push(second)
-      } else {
-        query[first] = [query[first], second]
-      }
-    }
-  }
-
-  return query
+export {
+  parseURLQuery,
+  stringifyURLQuery,
+  replaceSubstr,
+  getNumDescription,
+  getAge,
+  base64toBlob,
+  sha1,
+  md5,
+  encryptAES,
+  decryptAES,
+  vkFormatBirthDate
 }
-
-export const stringifyURLQuery = (params) => {
-  const sortedParams = Object.keys(params)
-    .sort()
-    .reduce((r, k) => ({ ...r, [k]: params[k] }), {})
-  const searchParameters = new URLSearchParams()
-
-  Object.keys(sortedParams)
-    .forEach((parameterName) => {
-      searchParameters.append(parameterName, sortedParams[parameterName])
-    })
-
-  return searchParameters.toString()
-}
-
-export const replaceSubstr = (...args) => {
-  let [s, p, r] = args || []
-
-  return !!s && {
-    2: () => {
-      for (const i in p) {
-        s = replaceSubstr(s, i, p[i])
-      }
-      return s
-    },
-    3: () => s.replace(new RegExp(`[${p}]`, 'g'), r),
-    0: () => false
-  }[args.length]()
-}
-
-export const unescapeHtmlChars = (v = '') => entities.decode(v)
-
-export const unescapeHtmlCharsFromVkGeoData = d => ({
-  ...d,
-  title: d.title ? unescapeHtmlChars(d.title) : d.title
-})
-
-export const unescapeHtmlCharsFromVkUserData = d => ({
-  ...d,
-  first_name: d.first_name ? unescapeHtmlChars(d.first_name) : d.first_name,
-  last_name: d.last_name ? unescapeHtmlChars(d.last_name) : d.last_name,
-  city: typeof d.city === 'object' ? unescapeHtmlCharsFromVkGeoData(d.city) : d.city,
-  country: typeof d.country === 'object' ? unescapeHtmlCharsFromVkGeoData(d.country) : d.country
-})
-
-export const getNumDescription = (n, textForms) => {
-  const num = Math.abs(n) % 100
-  const num1 = num % 10
-
-  if (num > 10 && num < 20) {
-    return textForms[2]
-  }
-  if (num1 > 1 && num1 < 5) {
-    return textForms[1]
-  }
-  if (num1 === 1) {
-    return textForms[0]
-  }
-  return textForms[2]
-}
-
-export const getAgeDescription = n => getNumDescription(n, ['год', 'года', 'лет'])
-
-export const getAge = birthDate => Math.trunc((new Date() - new Date(birthDate)) / (1000 * 60 * 60 * 24 * 365.245))
-
-export const formatVkBirthDate = (vkBDate) => {
-  if (!vkBDate) {
-    return new Date(2001, 0)
-  }
-
-  const parts = vkBDate.split('.')
-    .map(v => +v)
-
-  parts[1] -= 1
-
-  let birthDate = new Date(parts[2] || 2001, parts[1], parts[0])
-  const minBirthDate = new Date(Date.now() - 1000 * 60 * 60 * 24 * 365.245 * 120)
-
-  if (birthDate < minBirthDate) {
-    birthDate = new Date(minBirthDate.getFullYear(), parts[1], parts[0])
-  }
-
-  return birthDate
-}
-
-export const addRequestPagination = ({ limit = 20, offset = 0 } = {}) => `limit=${limit}&offset=${offset}`
-
-export const base64toBlob = (b64Data, contentType = '', sliceSize = 512) => {
-  const byteCharacters = atob(b64Data)
-  const byteArrays = []
-
-  for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-    const slice = byteCharacters.slice(offset, offset + sliceSize)
-    const byteNumbers = new Array(slice.length)
-
-    for (let i = 0; i < slice.length; i++) {
-      byteNumbers[i] = slice.charCodeAt(i)
-    }
-    byteArrays.push(new Uint8Array(byteNumbers))
-  }
-
-  return new Blob(byteArrays, { type: contentType })
-}
-
-export const sha1 = v => crypto.createHash('sha1')
-  .update(v, 'binary')
-  .digest('hex')
-
-export const md5 = v => crypto.createHash('md5')
-  .update(typeof v === 'string' ? v : JSON.stringify(v))
-  .digest('hex')
-
-export const encrypt = (v, salt) => cryptoJs.AES.encrypt(typeof v === 'string' ? v : JSON.stringify(v), salt)
-  .toString()
-
-export const decrypt = (v, salt) => JSON.parse(cryptoJs.AES.decrypt(v, salt)
-  .toString(cryptoJs.enc.Utf8))
-
 export default {
   parseURLQuery,
   stringifyURLQuery,
   replaceSubstr,
-  unescapeHtmlChars,
-  unescapeHtmlCharsFromVkGeoData,
-  unescapeHtmlCharsFromVkUserData,
   getNumDescription,
-  getAgeDescription,
   getAge,
-  formatVkBirthDate,
-  addRequestPagination,
   base64toBlob,
   sha1,
   md5,
-  encrypt,
-  decrypt
+  encryptAES,
+  decryptAES,
+  vkFormatBirthDate
 }
