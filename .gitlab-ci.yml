@@ -46,6 +46,7 @@ development:
 
 production:
   stage: publish
+  image: node:12
   script:
     - npm i -s
     - npm run pack:prepare
