@@ -10,7 +10,7 @@ export default class Vk {
     isMock,
     apiVersion = '5.103',
     lang = 'ru'
-  }) {
+  } = {}) {
     this.bridge = isMock ? vkBridgeMock : vkBridge
     this.apiVersion = apiVersion
     this.lang = lang
