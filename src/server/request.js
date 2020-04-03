@@ -11,12 +11,13 @@ export default (url = 'https://google.com', options = {}) => new Promise((resolv
   const {
     data = '',
     method = 'GET',
-    headers = {}
+    headers = {},
+    noParse
   } = options
 
   delete options.data
   delete options.method
-  delete options.method
+  delete options.noParse
 
   if (!headers['Content-Type']) {
     headers['Content-Type'] = 'application/json'
@@ -35,7 +36,7 @@ export default (url = 'https://google.com', options = {}) => new Promise((resolv
       if (res.statusCode >= 400) {
         reject(new HttpError(res.statusCode))
       } else {
-        resolve(body)
+        resolve(noParse ? body : JSON.parse(body))
       }
     })
   })
